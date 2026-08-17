@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -48,8 +49,17 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    // Added for screen-to-screen navigation
+    // Screen-to-screen navigation
     implementation(libs.androidx.navigation.compose)
+    // viewModel() inside composables
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // Firebase — the BoM sets every Firebase library's version, so the
+    // individual dependencies below deliberately have no version number.
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

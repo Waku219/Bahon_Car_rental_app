@@ -17,27 +17,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.app.data.UserRole
 import com.example.app.ui.components.CholoPrimaryButton
 import com.example.app.ui.components.CholoTextField
+import com.example.app.ui.components.ErrorBanner
 import com.example.app.ui.components.Glyph
 import com.example.app.ui.theme.*
 
 /**
  * Wireframes 2 and 3 — passenger and owner registration.
- * They are byte-for-byte the same form, so this is ONE screen with a
- * `role` parameter rather than two near-identical files.
+ * One screen for both, told apart by the `role` parameter.
+ *
+ * The form fields live in this composable; anything involving Firebase lives
+ * in AuthViewModel. The screen only reads uiState and reacts to it.
  */
 @Composable
 fun RegisterScreen(
     role: UserRole,
     onBack: () -> Unit,
-    onRegister: () -> Unit,
-    onSignInClick: () -> Unit
+    onRegistered: () -> Unit,
+    onSignInClick: () -> Unit,
+    viewModel: AuthViewModel = viewModel()
 ) {
-    // `remember` keeps the value across recompositions; `mutableStateOf` makes
-    // Compose redraw the field whenever it changes. This pair is the whole
-    // state model in Compose.
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var nid by remember { mutableStateOf("") }
@@ -47,7 +49,15 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
+    val state = viewModel.uiState
     val isOwner = role == UserRole.OWNER
+
+    // Runs once when `success` flips to true. Navigation is a side effect, so it
+    // belongs in LaunchedEffect — calling it directly during composition would
+    // fire again on every redraw.
+    LaunchedEffect(state.success) {
+        if (state.success) onRegistered()
+    }
 
     Column(
         modifier = Modifier
@@ -135,7 +145,7 @@ fun RegisterScreen(
                 minLines = 3
             )
             CholoTextField(
-                label = "ইমেইল (Email) — ঐচ্ছিক",
+                label = "ইমেইল (Email) — লগইনের জন্য",
                 value = email,
                 onValueChange = { email = it },
                 placeholder = "example@mail.com",
@@ -145,7 +155,7 @@ fun RegisterScreen(
                 label = "পাসওয়ার্ড (Password)",
                 value = password,
                 onValueChange = { password = it },
-                placeholder = "পাসওয়ার্ড তৈরি করুন",
+                placeholder = "কমপক্ষে ৬ অক্ষর",
                 isPassword = true
             )
             CholoTextField(
@@ -157,12 +167,31 @@ fun RegisterScreen(
             )
         }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
+
+        state.error?.let {
+            ErrorBanner(it, Modifier.padding(horizontal = 20.dp))
+            Spacer(Modifier.height(16.dp))
+        }
 
         Column(Modifier.padding(horizontal = 20.dp)) {
             CholoPrimaryButton(
-                text = "রেজিস্ট্রেশন সম্পন্ন করুন (Complete Registration)",
-                onClick = onRegister
+                text = if (state.loading) "অপেক্ষা করুন..."
+                else "রেজিস্ট্রেশন সম্পন্ন করুন (Complete Registration)",
+                enabled = !state.loading,
+                onClick = {
+                    viewModel.register(
+                        name = name,
+                        email = email,
+                        password = password,
+                        confirmPassword = confirmPassword,
+                        phone = phone,
+                        nid = nid,
+                        nationality = nationality,
+                        address = address,
+                        role = role
+                    )
+                }
             )
         }
 
@@ -186,13 +215,13 @@ fun RegisterScreen(
     }
 }
 
-@Preview(showBackground = true, heightDp = 1600)
+@Preview(showBackground = true, heightDp = 1700)
 @Composable
 private fun RegisterPreview() {
     AppTheme {
         RegisterScreen(
             role = UserRole.PASSENGER,
-            onBack = {}, onRegister = {}, onSignInClick = {}
+            onBack = {}, onRegistered = {}, onSignInClick = {}
         )
     }
 }

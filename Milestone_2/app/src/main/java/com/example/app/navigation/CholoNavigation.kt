@@ -1,10 +1,12 @@
 package com.example.app.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.app.data.AuthRepository
 import com.example.app.data.UserRole
 import com.example.app.ui.auth.RegisterScreen
 import com.example.app.ui.auth.RoleSelectScreen
@@ -57,6 +59,17 @@ object Routes {
 @Composable
 fun CholoNavigation(navController: NavHostController = rememberNavController()) {
 
+    val authRepository = remember { AuthRepository() }
+
+    // Signing out clears the ENTIRE back stack (popUpTo(0)) so pressing back
+    // from the role-select screen can't walk into a logged-out home screen.
+    val signOut: () -> Unit = {
+        authRepository.signOut()
+        navController.navigate(Routes.ROLE_SELECT) {
+            popUpTo(0) { inclusive = true }
+        }
+    }
+
     NavHost(navController = navController, startDestination = Routes.ROLE_SELECT) {
 
         /* ---------------- Auth ---------------- */
@@ -73,7 +86,7 @@ fun CholoNavigation(navController: NavHostController = rememberNavController()) 
             RegisterScreen(
                 role = role,
                 onBack = { navController.popBackStack() },
-                onRegister = { navController.navigateToHome(role) },
+                onRegistered = { navController.navigateToHome(role) },
                 onSignInClick = { navController.navigate(Routes.signIn(role)) }
             )
         }
@@ -83,7 +96,7 @@ fun CholoNavigation(navController: NavHostController = rememberNavController()) 
             SignInScreen(
                 role = role,
                 onBack = { navController.popBackStack() },
-                onSignIn = { navController.navigateToHome(role) },
+                onSignedIn = { navController.navigateToHome(role) },
                 onSignUpClick = { navController.navigate(Routes.register(role)) }
             )
         }
@@ -94,7 +107,8 @@ fun CholoNavigation(navController: NavHostController = rememberNavController()) 
             PassengerHomeScreen(
                 onSearchClick = { navController.navigate(Routes.SEARCH) },
                 onCategoryClick = { navController.navigate(Routes.RESULTS) },
-                onBookingClick = { navController.navigate(Routes.carDetails(it)) }
+                onBookingClick = { navController.navigate(Routes.carDetails(it)) },
+                onSignOut = signOut
             )
         }
 
@@ -135,8 +149,6 @@ fun CholoNavigation(navController: NavHostController = rememberNavController()) 
             BookingSuccessScreen(
                 vehicleId = backStackEntry.arguments?.getString("vehicleId"),
                 onGoHome = {
-                    // Clear the booking flow off the back stack so pressing back
-                    // from home doesn't drop the user into the confirmation again.
                     navController.navigate(Routes.PASSENGER_HOME) {
                         popUpTo(Routes.PASSENGER_HOME) { inclusive = true }
                     }
@@ -149,7 +161,8 @@ fun CholoNavigation(navController: NavHostController = rememberNavController()) 
         composable(Routes.OWNER_HOME) {
             OwnerHomeScreen(
                 onAddCar = { navController.navigate(Routes.ADD_CAR) },
-                onBookingRequests = { navController.navigate(Routes.BOOKING_REQUESTS) }
+                onBookingRequests = { navController.navigate(Routes.BOOKING_REQUESTS) },
+                onSignOut = signOut
             )
         }
 

@@ -1,6 +1,7 @@
 package com.example.app.ui.owner
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,7 +29,8 @@ import com.example.app.util.toTaka
 @Composable
 fun OwnerHomeScreen(
     onAddCar: () -> Unit,
-    onBookingRequests: () -> Unit
+    onBookingRequests: () -> Unit,
+    onSignOut: () -> Unit = {}
 ) {
     val owner = SampleData.currentOwner
 
@@ -90,7 +92,16 @@ fun OwnerHomeScreen(
                             color = Ink
                         )
                     }
-                    Avatar(owner.name)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Avatar(owner.name)
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "লগ আউট",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = CholoRed,
+                            modifier = Modifier.clickable(onClick = onSignOut)
+                        )
+                    }
                 }
             }
 

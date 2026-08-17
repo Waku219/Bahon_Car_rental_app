@@ -34,7 +34,8 @@ import com.example.app.util.toTaka
 fun PassengerHomeScreen(
     onSearchClick: () -> Unit,
     onCategoryClick: (CarType) -> Unit,
-    onBookingClick: (String) -> Unit
+    onBookingClick: (String) -> Unit,
+    onSignOut: () -> Unit = {}
 ) {
     val user = SampleData.currentPassenger
 
@@ -64,7 +65,16 @@ fun PassengerHomeScreen(
                         color = Ink
                     )
                 }
-                Avatar(user.name)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Avatar(user.name)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "লগ আউট",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = CholoRed,
+                        modifier = Modifier.clickable(onClick = onSignOut)
+                    )
+                }
             }
         }
 

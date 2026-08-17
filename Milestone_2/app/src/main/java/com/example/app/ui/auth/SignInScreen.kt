@@ -18,24 +18,32 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.app.data.UserRole
 import com.example.app.ui.components.CholoPrimaryButton
 import com.example.app.ui.components.CholoTextField
+import com.example.app.ui.components.ErrorBanner
 import com.example.app.ui.components.Glyph
 import com.example.app.ui.theme.*
 
-/** Wireframes 4 and 5 — passenger and owner sign in, again one screen for both. */
+/** Wireframes 4 and 5 — passenger and owner sign in. */
 @Composable
 fun SignInScreen(
     role: UserRole,
     onBack: () -> Unit,
-    onSignIn: () -> Unit,
-    onSignUpClick: () -> Unit
+    onSignedIn: () -> Unit,
+    onSignUpClick: () -> Unit,
+    viewModel: AuthViewModel = viewModel()
 ) {
-    var phone by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    val state = viewModel.uiState
     val isOwner = role == UserRole.OWNER
+
+    LaunchedEffect(state.success) {
+        if (state.success) onSignedIn()
+    }
 
     Column(
         modifier = Modifier
@@ -93,12 +101,11 @@ fun SignInScreen(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             CholoTextField(
-                label = "মোবাইল নম্বর (Phone Number)",
-                value = phone,
-                onValueChange = { phone = it },
-                placeholder = "01712XXXXXX",
-                prefix = "+880",
-                keyboardType = KeyboardType.Phone
+                label = "ইমেইল (Email)",
+                value = email,
+                onValueChange = { email = it },
+                placeholder = "example@mail.com",
+                keyboardType = KeyboardType.Email
             )
             CholoTextField(
                 label = "পাসওয়ার্ড (Password)",
@@ -121,14 +128,23 @@ fun SignInScreen(
                 "পাসওয়ার্ড ভুলে গেছেন? (Forgot password?)",
                 style = MaterialTheme.typography.labelMedium,
                 color = CholoGreen,
-                modifier = Modifier.clickable { /* TODO: forgot-password flow */ }
+                modifier = Modifier.clickable { /* TODO: sendPasswordResetEmail */ }
             )
         }
 
-        Spacer(Modifier.height(48.dp))
+        Spacer(Modifier.height(32.dp))
+
+        state.error?.let {
+            ErrorBanner(it, Modifier.padding(horizontal = 20.dp))
+            Spacer(Modifier.height(16.dp))
+        }
 
         Column(Modifier.padding(horizontal = 20.dp)) {
-            CholoPrimaryButton(text = "সাইন ইন করুন (Sign In)", onClick = onSignIn)
+            CholoPrimaryButton(
+                text = if (state.loading) "অপেক্ষা করুন..." else "সাইন ইন করুন (Sign In)",
+                enabled = !state.loading,
+                onClick = { viewModel.signIn(email, password, role) }
+            )
         }
 
         Spacer(Modifier.height(16.dp))
@@ -151,10 +167,10 @@ fun SignInScreen(
     }
 }
 
-@Preview(showBackground = true, heightDp = 900)
+@Preview(showBackground = true, heightDp = 950)
 @Composable
 private fun SignInPreview() {
     AppTheme {
-        SignInScreen(role = UserRole.PASSENGER, onBack = {}, onSignIn = {}, onSignUpClick = {})
+        SignInScreen(role = UserRole.PASSENGER, onBack = {}, onSignedIn = {}, onSignUpClick = {})
     }
 }

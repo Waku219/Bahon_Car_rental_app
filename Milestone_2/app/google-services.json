@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "558448095336",
+    "project_id": "cholo-car-rental",
+    "storage_bucket": "cholo-car-rental.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:558448095336:android:755de55aca71c065cccbdd",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArd85cgjwWKu87hURWMMhOMwHlhaC7pIg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
